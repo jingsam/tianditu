@@ -3,7 +3,6 @@ __author__ = 'jingsam@163.com'
 
 import os
 import multiprocessing
-import json
 import arcpy
 from area import ring_area
 
@@ -17,17 +16,30 @@ def check_mini_area(in_fc, tolerance, cpus, pid):
         if row[0] % cpus != pid:
             continue
 
-        polygon = json.loads(row[1].JSON)
-        if not polygon.get("rings"):
-            continue
-
-        for ring in polygon.get("rings"):
+        rings = get_rings(row[1])
+        for ring in rings:
             area = ring_area(ring)
             if abs(area) <= tolerance:
                 errors.append('{0}, {1}, {2}, {3}, {4}\n'.format(row[0], 'ERR05', ring[0][0], ring[0][1], abs(area)))
     del cursor
 
     return ''.join(errors)
+
+
+def get_rings(polygon):
+    rings = []
+    for part in polygon:
+        ring = []
+        for point in part:
+            if point:
+                ring.append([point.X, point.Y])
+            else:
+                rings.append(ring)
+                ring = []
+        if ring:
+            rings.append(ring)
+
+    return rings
 
 
 def check_hole(n_fc, tolerance, out_chk):
