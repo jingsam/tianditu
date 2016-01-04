@@ -6,28 +6,44 @@ from math import cos
 from math import pi
 
 
-def polygon_area(coords):
+def get_rings(polygon):
+    rings = []
+    for part in polygon:
+        ring = []
+        for point in part:
+            if point:
+                ring.append(point)
+            else:
+                rings.append(ring)
+                ring = []
+        if ring:
+            rings.append(ring)
+
+    return rings
+
+
+def polygon_area(rings):
     area = 0
-    if coords:
-        for i in xrange(0, len(coords)):
-            area += ring_area(coords[i])
+    if rings:
+        for i in xrange(0, len(rings)):
+            area += ring_area(rings[i])
 
     return area
 
 
-def ring_area(coords):
+def ring_area(ring):
     area = 0
-    for i in xrange(0, len(coords) - 1):
-        area += trapezoid_area(coords[i], coords[i + 1])
+    for i in xrange(0, len(ring) - 1):
+        area += trapezoid_area(ring[i], ring[i + 1])
 
     return area
 
 
 def trapezoid_area(point1, point2):
-    lat1 = rad(point1[0])
-    lon1 = rad(point1[1])
-    lat2 = rad(point2[0])
-    lon2 = rad(point2[1])
+    lat1 = rad(point1.X)
+    lon1 = rad(point1.Y)
+    lat2 = rad(point2.X)
+    lon2 = rad(point2.Y)
 
     if lon1 == lon2:
         return 0.0
@@ -53,9 +69,9 @@ def trapezoid_area(point1, point2):
     return -S
 
 
-def ring_area2(coords):
+def ring_area2(ring):
     area = 0
-    length = len(coords)
+    length = len(ring)
 
     if length > 2:
         p1, p2, p3 = 0, 0, 0
@@ -64,7 +80,7 @@ def ring_area2(coords):
                 p1, p2, p3 = length - 2, length - 1, 1
             else:
                 p1, p2, p3 = i, i + 1, i + 2
-            area += (rad(coords[p3][0]) - rad(coords[p1][0])) * sin(coords[p2][1])
+            area += (rad(ring[p3].x) - rad(ring[p1].x)) * sin(ring[p2].y)
 
     return area * 6378137 * 6378137 / 2
 

@@ -3,6 +3,7 @@ __author__ = 'jingsam@163.com'
 
 import os
 import arcpy
+from area import get_rings
 
 
 def check_angle(in_fc, tolerance, out_chk):
@@ -26,23 +27,27 @@ def check_angle(in_fc, tolerance, out_chk):
     f.write('OID, ErrorID, X, Y, distance\n')
 
     errors = []
-    cursor = arcpy.da.SearchCursor(in_fc, ["SHAPE@", "OID@"], spatial_reference=desc.spatialReference.GCS)
+    cursor = arcpy.da.SearchCursor(in_fc, ["OID@", "SHAPE@",], spatial_reference=desc.spatialReference.GCS)
     for row in cursor:
-        for part in row[0]:
-            for i in xrange(0, len(part) - 4):
-                p1, p2, p3, p4 = i, i + 1, i + 2, i + 3
+        rings = get_rings(row[1])
+        for ring in rings:
+            for i in xrange(0, len(ring) - 1):
+                p1, p3, p4 = i, i + 2, i + 3
+                if p1 == len(ring) - 3:
+                    p4 = 1
+                elif p1 == len(ring) - 2:
+                    p3, p4 = 1, 2
 
-                point1 = arcpy.PointGeometry(p1, desc.spatialReference.GCS)
-                point3 = arcpy.PointGeometry(p3, desc.spatialReference.GCS)
-                point4 = arcpy.PointGeometry(p4, desc.spatialReference.GCS)
+                point1 = arcpy.PointGeometry(ring[p1], desc.spatialReference.GCS)
+                point3 = arcpy.PointGeometry(ring[p3], desc.spatialReference.GCS)
+                point4 = arcpy.PointGeometry(ring[p4], desc.spatialReference.GCS)
 
                 p1_p3 = point1.angleAndDistanceTo(point3)[1]
                 p1_p4 = point1.angleAndDistanceTo(point4)[1]
-
                 dist = min(p1_p3, p1_p4)
 
                 if dist <= tolerance:
-                    errors.append('{0}, {1}, {2}, {3}, {4}\n'.format(row[1], 'ERR06', part[p2].X, part[p2].Y, dist))
+                    errors.append('{0}, {1}, {2}, {3}, {4}\n'.format(row[0], 'ERR06', ring[i].X, ring[i].Y, dist))
     del cursor
 
     f.write(''.join(errors))
