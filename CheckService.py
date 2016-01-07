@@ -17,8 +17,9 @@ def CheckService(in_fc, field):
     if field not in desc.fields:
         arcpy.AddField_management(in_fc, field, "DOUBLE")
 
-    arcpy.CalculateField_management(in_fc, field, "!shape.length@kilometers!", "PYTHON_9.3")
 
 if __name__ == "__main__":
-    input_fc = arcpy.GetParameterAsText(0)
-    field = arcpy.GetParameterAsText(1)
+    in_fc = arcpy.GetParameterAsText(0)
+    tolerance = arcpy.GetParameterAsText(1)
+    out_chk = arcpy.GetParameterAsText(2)
+

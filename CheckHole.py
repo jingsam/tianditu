@@ -2,9 +2,9 @@
 __author__ = 'jingsam@163.com'
 
 import os
-import multiprocessing
 import arcpy
 from area import get_rings, ring_area
+from parallel import check_parallel
 
 
 def check_mini_area(in_fc, tolerance, cpus, pid):
@@ -26,7 +26,7 @@ def check_mini_area(in_fc, tolerance, cpus, pid):
     return ''.join(errors)
 
 
-def check_hole(n_fc, tolerance, out_chk):
+def check_hole(in_fc, tolerance, out_chk):
     if not arcpy.Exists(in_fc):
         arcpy.AddIDMessage("ERROR", 110, in_fc)
         raise SystemExit()
@@ -46,51 +46,14 @@ def check_hole(n_fc, tolerance, out_chk):
     f = open(out_chk, 'w')
     f.write('OID, ErrorID, X, Y, Area\n')
 
-    result = check_mini_area(in_fc, tolerance, 1, 0)
+    # result = check_mini_area(in_fc, tolerance, 1, 0)
+    result = check_parallel(check_mini_area, in_fc, tolerance)
     f.write(result)
     f.close()
-
-
-def check_hole_parallel(in_fc, tolerance, out_chk):
-    if not arcpy.Exists(in_fc):
-        arcpy.AddIDMessage("ERROR", 110, in_fc)
-        raise SystemExit()
-
-    desc = arcpy.Describe(in_fc)
-    if desc.shapeType.lower() != "polygon":
-        arcpy.AddIDMessage("ERROR", 931)
-        raise SystemExit()
-
-    if desc.spatialReference.name == "Unknown":
-        arcpy.AddIDMessage("ERROR", 1024)
-        raise SystemExit()
-
-    ext = os.path.splitext(out_chk)[1]
-    if ext != '.csv':
-        out_chk += '.csv'
-    f = open(out_chk, 'w')
-    f.write('OID, ErrorID, X, Y, Area\n')
-
-    multiprocessing.freeze_support()
-    pool = multiprocessing.Pool()
-    cpus = multiprocessing.cpu_count()
-    results = []
-
-    for pid in xrange(0, cpus):
-        result = pool.apply_async(check_mini_area, args=(in_fc, tolerance, cpus, pid))
-        results.append(result)
-
-    pool.close()
-    pool.join()
-
-    for result in results:
-        f.write(result.get())
-    f.close()
-
 
 if __name__ == "__main__":
     in_fc = arcpy.GetParameterAsText(0)
     tolerance = arcpy.GetParameterAsText(1)
     out_chk = arcpy.GetParameterAsText(2)
 
-    check_hole_parallel(in_fc, float(tolerance), out_chk)
+    check_hole(in_fc, float(tolerance), out_chk)

@@ -40,12 +40,12 @@ def ring_area(ring):
 
 
 def trapezoid_area(point1, point2):
-    lat1 = rad(point1.X)
-    lon1 = rad(point1.Y)
-    lat2 = rad(point2.X)
-    lon2 = rad(point2.Y)
+    lon1 = rad(point1.X)
+    lat1 = rad(point1.Y)
+    lon2 = rad(point2.X)
+    lat2 = rad(point2.Y)
 
-    if lon1 == lon2:
+    if lat1 == lat2:
         return 0.0
 
     b2 = 4.04082999833e+13
@@ -55,9 +55,9 @@ def trapezoid_area(point1, point2):
     D = 2.71785784558e-09
     E = 4.35841900483e-12
 
-    dB = lon2 - lon1
-    dL = (lat1 + lat2) / 2
-    Bm = (lon1 + lon2) / 2
+    dB = lat2 - lat1
+    dL = (lon1 + lon2) / 2
+    Bm = (lat1 + lat2) / 2
 
     sA = A * sin(0.5 * dB) * cos(Bm)
     sB = B * sin(1.5 * dB) * cos(3 * Bm)
@@ -80,7 +80,7 @@ def ring_area2(ring):
                 p1, p2, p3 = length - 2, length - 1, 1
             else:
                 p1, p2, p3 = i, i + 1, i + 2
-            area += (rad(ring[p3].x) - rad(ring[p1].x)) * sin(ring[p2].y)
+            area += (rad(ring[p3].X) - rad(ring[p1].X)) * sin(ring[p2].Y)
 
     return area * 6378137 * 6378137 / 2
 
