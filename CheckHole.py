@@ -7,7 +7,10 @@ from area import get_rings, ring_area
 from parallel import check_parallel
 
 
-def check_mini_area(in_fc, tolerance, cpus, pid):
+def check_mini_area(args, cpus, pid):
+    in_fc = args[0]
+    tolerance = args[1]
+
     desc = arcpy.Describe(in_fc)
     errors = []
 
@@ -46,8 +49,8 @@ def check_hole(in_fc, tolerance, out_chk):
     f = open(out_chk, 'w')
     f.write('OID, ErrorID, X, Y, Area\n')
 
-    # result = check_mini_area(in_fc, tolerance, 1, 0)
-    result = check_parallel(check_mini_area, in_fc, tolerance)
+    # result = check_mini_area((in_fc, tolerance), 1, 0)
+    result = check_parallel(check_mini_area, (in_fc, tolerance))
     f.write(result)
     f.close()
 
