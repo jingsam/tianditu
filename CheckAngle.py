@@ -8,7 +8,7 @@ from bearing import angle
 from parallel import check_parallel
 
 
-def check_mini_angle(args, cpus, pid):
+def check_angle_task(args, cpus, pid):
     in_fc = args[0]
     tolerance = args[1]
 
@@ -36,7 +36,8 @@ def check_mini_angle(args, cpus, pid):
                 _angle = angle(ring[p1], ring[p2], ring[p3])
 
                 if _angle <= tolerance:
-                    errors.append('{0}, {1}, {2}, {3}, {4}\n'.format(row[0], 'ERR06', ring[p2].X, ring[p2].Y, _angle))
+                    errors.append('{0}, {1}, {2}, {3}, {4}\n'
+                                  .format(row[0], 'ERR02', ring[p2].X, ring[p2].Y, _angle))
     del cursor
 
     return ''.join(errors)
@@ -63,7 +64,7 @@ def check_angle(in_fc, tolerance, out_chk):
     f.write('OID, ErrorID, X, Y, Angle\n')
 
     # result = check_mini_angle((in_fc, tolerance), 1, 0)
-    result = check_parallel(check_mini_angle, (in_fc, tolerance))
+    result = check_parallel(check_angle_task, (in_fc, tolerance))
     f.write(result)
     f.close()
 

@@ -6,27 +6,13 @@ import re
 import arcpy
 from parallel import check_parallel
 
-
-def get_pattern(keywords, rule):
-    match = False if u'不' in rule else True
-    pattern = u'|'.join(keywords)
-    if u'包含关键字' in rule:
-        return re.compile(pattern), match
-    elif u'以关键字开头' in rule:
-        return  re.compile(u'^(' + pattern + u')'), match
-    elif u'以关键字结尾' in rule:
-        return  re.compile(u'(' + pattern + u')$'), match
-
-
-def check_name_task(args, cpus, pid):
+def check_rare_name_task(args, cpus, pid):
     in_fc = args[0]
     fields = args[1]
-    keywords = args[2]
-    rule = args[3]
 
     desc = arcpy.Describe(in_fc)
     errors = []
-    pattern = get_pattern(keywords, rule)
+    pattern = re.compile(u"[ ~!！.·#￥%…&*]")
 
     _fields = ["OID@", "SHAPE@XY"] + fields
     cursor = arcpy.da.SearchCursor(in_fc, _fields, spatial_reference=desc.spatialReference.GCS)
@@ -41,18 +27,24 @@ def check_name_task(args, cpus, pid):
             # row[i] is a unicode string
             display_name = row[i].encode("utf-8")
             field = _fields[i]
-            match = pattern[0].search(row[i])
-            error = (pattern[1] and not match) or (not pattern[1] and match)
-            if error:
+            match = pattern.search(row[i])
+            if match:
                 errors.append('{0}, {1}, {2}, {3}, {4}, {5}\n'
-                              .format(row[0], 'ERR05', row[1][0], row[1][1], field, display_name))
+                              .format(row[0], 'ERR04', row[1][0], row[1][1], field, display_name))
+                continue
+
+            try:
+                row[i].encode("gb2312")
+            except UnicodeEncodeError:
+                errors.append('{0}, {1}, {2}, {3}, {4}, {5}\n'
+                              .format(row[0], 'ERR04', row[1][0], row[1][1], field, display_name))
                 continue
     del cursor
 
     return ''.join(errors)
 
 
-def check_name(in_fc, fields, keywords, rule, out_chk):
+def check_rare_name(in_fc, fields, out_chk):
     if not arcpy.Exists(in_fc):
         arcpy.AddIDMessage("ERROR", 110, in_fc)
         raise SystemExit()
@@ -63,8 +55,8 @@ def check_name(in_fc, fields, keywords, rule, out_chk):
     f = open(out_chk, 'w')
     f.write('OID, ErrorID, X, Y, Field, Name\n')
 
-    # result = check_name_task((in_fc, fields, keywords, rule), 1, 0)
-    result = check_parallel(check_name_task, (in_fc, fields, keywords, rule))
+    # result = check_rare_name_task((in_fc, fields), 1, 0)
+    result = check_parallel(check_rare_name_task, (in_fc, fields))
     f.write(result)
     f.close()
 
@@ -72,8 +64,6 @@ def check_name(in_fc, fields, keywords, rule, out_chk):
 if __name__ == "__main__":
     in_fc = arcpy.GetParameterAsText(0)
     fields = arcpy.GetParameterAsText(1)
-    keywords = arcpy.GetParameterAsText(2)
-    rule = arcpy.GetParameterAsText(3)
-    out_chk = arcpy.GetParameterAsText(4)
+    out_chk = arcpy.GetParameterAsText(2)
 
-    check_name(in_fc, fields.split(";"), keywords.split(";"), rule, out_chk)
+    check_rare_name(in_fc, fields.split(";"), out_chk)

@@ -7,7 +7,7 @@ from area import get_rings, ring_area
 from parallel import check_parallel
 
 
-def check_mini_area(args, cpus, pid):
+def check_hole_task(args, cpus, pid):
     in_fc = args[0]
     tolerance = args[1]
 
@@ -23,7 +23,8 @@ def check_mini_area(args, cpus, pid):
         for ring in rings:
             area = ring_area(ring)
             if abs(area) <= tolerance:
-                errors.append('{0}, {1}, {2}, {3}, {4}\n'.format(row[0], 'ERR05', ring[0].X, ring[0].Y, abs(area)))
+                errors.append('{0}, {1}, {2}, {3}, {4}\n'
+                              .format(row[0], 'ERR01', ring[0].X, ring[0].Y, abs(area)))
     del cursor
 
     return ''.join(errors)
@@ -49,8 +50,8 @@ def check_hole(in_fc, tolerance, out_chk):
     f = open(out_chk, 'w')
     f.write('OID, ErrorID, X, Y, Area\n')
 
-    # result = check_mini_area((in_fc, tolerance), 1, 0)
-    result = check_parallel(check_mini_area, (in_fc, tolerance))
+    # result = check_hole_task((in_fc, tolerance), 1, 0)
+    result = check_parallel(check_hole_task, (in_fc, tolerance))
     f.write(result)
     f.close()
 
