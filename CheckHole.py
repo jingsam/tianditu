@@ -13,7 +13,7 @@ def check_hole_task(args, cpus, pid):
     error_id = "ERR01"
     layer = os.path.basename(in_fc)
     content = "多边形缝隙检查"
-    description = "图层【{0}】的ID为【{1}】的要素，存在不合理的线缝隙、点缝隙"
+    description = "图层【{0}】的ID为【{1}】的要素，存在不合理的线缝隙、点缝隙。"
     warning = "不忽略"
 
 

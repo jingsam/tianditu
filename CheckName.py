@@ -23,6 +23,11 @@ def check_name_task(args, cpus, pid):
     fields = args[1]
     keywords = args[2]
     rule = args[3]
+    error_id = "ERR05"
+    layer = os.path.basename(in_fc)
+    content = "属性值规则符合检查"
+    description = "【{0}】图层中【{1}】字段值为【{2}】，不符合名称合法项规则。"
+    warning = "不忽略"
 
     desc = arcpy.Describe(in_fc)
     errors = []
@@ -44,8 +49,8 @@ def check_name_task(args, cpus, pid):
             match = pattern[0].search(row[i])
             error = (pattern[1] and not match) or (not pattern[1] and match)
             if error:
-                errors.append('{0}, {1}, {2}, {3}, {4}, {5}\n'
-                              .format(row[0], 'ERR05', row[1][0], row[1][1], field, display_name))
+                errors.append('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}\n'
+                              .format(row[0], error_id, layer, content, description.format(layer, field, display_name), row[1][0], row[1][1], warning))
                 continue
     del cursor
 
@@ -61,7 +66,7 @@ def check_name(in_fc, fields, keywords, rule, out_chk):
     if ext != '.csv':
         out_chk += '.csv'
     f = open(out_chk, 'w')
-    f.write('OID, ErrorID, X, Y, Field, Name\n')
+    f.write('OID, ErrorID, Layer, InspectionContent, Description, X, Y, Warning\n')
 
     # result = check_name_task((in_fc, fields, keywords, rule), 1, 0)
     result = check_parallel(check_name_task, (in_fc, fields, keywords, rule))

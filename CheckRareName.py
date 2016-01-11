@@ -9,6 +9,11 @@ from parallel import check_parallel
 def check_rare_name_task(args, cpus, pid):
     in_fc = args[0]
     fields = args[1]
+    error_id = "ERR04"
+    layer = os.path.basename(in_fc)
+    content = "道路名称字段不能含有不合理的字符"
+    description = "图层【{0}】的ID为【{1}】的要素，道路名称字段不能含有不合理的字符。"
+    warning = "不忽略"
 
     desc = arcpy.Describe(in_fc)
     errors = []
@@ -29,15 +34,15 @@ def check_rare_name_task(args, cpus, pid):
             field = _fields[i]
             match = pattern.search(row[i])
             if match:
-                errors.append('{0}, {1}, {2}, {3}, {4}, {5}\n'
-                              .format(row[0], 'ERR04', row[1][0], row[1][1], field, display_name))
+                errors.append('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}\n'
+                              .format(row[0], error_id, layer, content, description.format(layer, row[0]), row[1][0], row[1][1], warning))
                 continue
 
             try:
                 row[i].encode("gb2312")
             except UnicodeEncodeError:
-                errors.append('{0}, {1}, {2}, {3}, {4}, {5}\n'
-                              .format(row[0], 'ERR04', row[1][0], row[1][1], field, display_name))
+                errors.append('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}\n'
+                              .format(row[0], error_id, layer, content, description.format(layer, row[0]), row[1][0], row[1][1], warning))
                 continue
     del cursor
 
@@ -53,7 +58,7 @@ def check_rare_name(in_fc, fields, out_chk):
     if ext != '.csv':
         out_chk += '.csv'
     f = open(out_chk, 'w')
-    f.write('OID, ErrorID, X, Y, Field, Name\n')
+    f.write('OID, ErrorID, Layer, InspectionContent, Description, X, Y, Warning\n')
 
     # result = check_rare_name_task((in_fc, fields), 1, 0)
     result = check_parallel(check_rare_name_task, (in_fc, fields))

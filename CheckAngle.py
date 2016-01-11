@@ -11,6 +11,11 @@ from parallel import check_parallel
 def check_angle_task(args, cpus, pid):
     in_fc = args[0]
     tolerance = args[1]
+    error_id = "ERR02"
+    layer = os.path.basename(in_fc)
+    content = "多边形飞点检查"
+    description = "图层【{0}】的ID为【{1}】的要素，存在不合理的突出或凹陷。"
+    warning = "不忽略"
 
     desc = arcpy.Describe(in_fc)
     errors = []
@@ -36,8 +41,8 @@ def check_angle_task(args, cpus, pid):
                 _angle = angle(ring[p1], ring[p2], ring[p3])
 
                 if _angle <= tolerance:
-                    errors.append('{0}, {1}, {2}, {3}, {4}\n'
-                                  .format(row[0], 'ERR02', ring[p2].X, ring[p2].Y, _angle))
+                    errors.append('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}\n'
+                                  .format(row[0], error_id, layer, content, description.format(layer, row[0]), ring[0].X, ring[0].Y, warning))
     del cursor
 
     return ''.join(errors)
@@ -61,7 +66,7 @@ def check_angle(in_fc, tolerance, out_chk):
     if ext != '.csv':
         out_chk += '.csv'
     f = open(out_chk, 'w')
-    f.write('OID, ErrorID, X, Y, Angle\n')
+    f.write('OID, ErrorID, Layer, InspectionContent, Description, X, Y, Warning\n')
 
     # result = check_mini_angle((in_fc, tolerance), 1, 0)
     result = check_parallel(check_angle_task, (in_fc, tolerance))

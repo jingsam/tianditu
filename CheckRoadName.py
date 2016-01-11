@@ -9,6 +9,11 @@ from parallel import check_parallel
 def check_road_name_task(args, cpus, pid):
     in_fc = args[0]
     fields = args[1]
+    error_id = "ERR06"
+    layer = os.path.basename(in_fc)
+    content = "NAME填写位置正确性检查"
+    description = "图层【{0}】的ID为【{1}】的要素，【{2}】填写不正确。"
+    warning = "不忽略"
 
     desc = arcpy.Describe(in_fc)
     errors = []
@@ -20,19 +25,19 @@ def check_road_name_task(args, cpus, pid):
             continue
 
         all_names = [row[i] for i in xrange(2, len(row))]
-        names = [name for name in all_names if name.strip()]
+        names = [name for name in all_names if name]
         if len(names) == 0:
             continue
 
         if len(set(names)) < len(names):
-            errors.append('{0}, {1}, {2}, {3}, {4}\n'
-                          .format(row[0], 'ERR04', row[1][0], row[1][1], u';'.join(all_names).encode("utf-8")))
+            errors.append('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}\n'
+                          .format(row[0], error_id, layer, content, description.format(layer, row[0], ';'.join(fields)), row[1][0], row[1][1], warning))
             continue
 
         for name in names:
             if all_names.index(name) >= len(names):
-                errors.append('{0}, {1}, {2}, {3}, {4}\n'
-                          .format(row[0], 'ERR06', row[1][0], row[1][1], u';'.join(all_names).encode("utf-8")))
+                errors.append('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}\n'
+                          .format(row[0], error_id, layer, content, description.format(layer, row[0], ';'.join(fields)), row[1][0], row[1][1], warning))
                 break
     del cursor
 
@@ -48,7 +53,7 @@ def check_road_name(in_fc, fields, out_chk):
     if ext != '.csv':
         out_chk += '.csv'
     f = open(out_chk, 'w')
-    f.write('OID, ErrorID, X, Y, Names\n')
+    f.write('OID, ErrorID, Layer, InspectionContent, Description, X, Y, Warning\n')
 
     # result = check_road_name_task((in_fc, fields), 1, 0)
     result = check_parallel(check_road_name_task, (in_fc, fields))

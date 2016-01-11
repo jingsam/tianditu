@@ -12,6 +12,11 @@ def check_edge_task(args, cpus, pid):
     in_fc = args[0]
     tolerance1 = args[1]
     tolerance2 = args[2]
+    error_id = "ERR03"
+    layer = os.path.basename(in_fc)
+    content = "接边线角度检查"
+    description = "图层【{0}】的ID为【{1}】的要素，接边线角度不合理。"
+    warning = "不忽略"
 
     desc = arcpy.Describe(in_fc)
     errors = []
@@ -41,8 +46,8 @@ def check_edge_task(args, cpus, pid):
 
                 p = p2 if _bearing >= 0 else p3
                 if min_bearing <= tolerance1 and min_angle1 <= tolerance2 and min_angle2 > tolerance2:
-                    errors.append('{0}, {1}, {2}, {3}, {4}, {5}\n'
-                                  .format(row[0], 'ERR03', ring[p].X, ring[p].Y, _bearing, _angle))
+                    errors.append('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}\n'
+                                  .format(row[0], error_id, layer, content, description.format(layer, row[0]), ring[0].X, ring[0].Y, warning))
     del cursor
 
     return ''.join(errors)
@@ -66,7 +71,7 @@ def check_edge(in_fc, tolerance1, tolerance2, out_chk):
     if ext != '.csv':
         out_chk += '.csv'
     f = open(out_chk, 'w')
-    f.write('OID, ErrorID, X, Y, Bearing, Angle\n')
+    f.write('OID, ErrorID, Layer, InspectionContent, Description, X, Y, Warning\n')
 
     # result = check_edge_task((in_fc, tolerance1, tolerance2), 1, 0)
     result = check_parallel(check_edge_task, (in_fc, tolerance1, tolerance2))
