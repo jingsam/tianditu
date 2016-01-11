@@ -18,7 +18,7 @@ def check_unique_id_task(in_fc, field):
     for row in cursor:
         if row[2] == value:
             errors.append('{0}, {1}, {2}, {3}, {4}, {5}\n'
-                          .format(row[0], 'ERR04', row[1][0], row[1][1], oid, value))
+                          .format(row[0], 'ERR07', row[1][0], row[1][1], oid, value))
         else:
             oid, value = row[0], row[2]
     del cursor

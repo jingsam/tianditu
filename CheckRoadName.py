@@ -32,7 +32,7 @@ def check_road_name_task(args, cpus, pid):
         for name in names:
             if all_names.index(name) >= len(names):
                 errors.append('{0}, {1}, {2}, {3}, {4}\n'
-                          .format(row[0], 'ERR04', row[1][0], row[1][1], u';'.join(all_names).encode("utf-8")))
+                          .format(row[0], 'ERR06', row[1][0], row[1][1], u';'.join(all_names).encode("utf-8")))
                 break
     del cursor
 
@@ -48,7 +48,7 @@ def check_road_name(in_fc, fields, out_chk):
     if ext != '.csv':
         out_chk += '.csv'
     f = open(out_chk, 'w')
-    f.write('OID, ErrorID, X, Y, Field, Names\n')
+    f.write('OID, ErrorID, X, Y, Names\n')
 
     # result = check_road_name_task((in_fc, fields), 1, 0)
     result = check_parallel(check_road_name_task, (in_fc, fields))
