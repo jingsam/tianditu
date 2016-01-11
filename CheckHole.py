@@ -10,6 +10,13 @@ from parallel import check_parallel
 def check_hole_task(args, cpus, pid):
     in_fc = args[0]
     tolerance = args[1]
+    error_id = "ERR01"
+    layer = os.path.basename(in_fc)
+    content = "多边形缝隙检查"
+    description = "图层【{0}】的ID为【{1}】的要素，存在不合理的线缝隙、点缝隙"
+    warning = "不忽略"
+
+
 
     desc = arcpy.Describe(in_fc)
     errors = []
@@ -23,8 +30,8 @@ def check_hole_task(args, cpus, pid):
         for ring in rings:
             area = ring_area(ring)
             if abs(area) <= tolerance:
-                errors.append('{0}, {1}, {2}, {3}, {4}\n'
-                              .format(row[0], 'ERR01', ring[0].X, ring[0].Y, abs(area)))
+                errors.append('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}\n'
+                              .format(row[0], error_id, layer, content, description.format(layer, row[0]), ring[0].X, ring[0].Y, warning))
     del cursor
 
     return ''.join(errors)
@@ -48,7 +55,7 @@ def check_hole(in_fc, tolerance, out_chk):
     if ext != '.csv':
         out_chk += '.csv'
     f = open(out_chk, 'w')
-    f.write('OID, ErrorID, X, Y, Area\n')
+    f.write('OID, ErrorID, Layer, InspectionContent, Description, X, Y, Warning\n')
 
     # result = check_hole_task((in_fc, tolerance), 1, 0)
     result = check_parallel(check_hole_task, (in_fc, tolerance))
